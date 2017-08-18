@@ -58,15 +58,20 @@ object ReadmissionPredictor {
         println ("** Number of trees ***")
         println (randomForestModel.numTrees)
 
+        // TODO: Switch to using mapPartitions instead of creating a producer for each record
         val pred = vectors.map( v =>  {
             val producer = new KafkaProducer[String, String](props)
             val pred = kmeansModel.predict(v).toInt
             val message = new ProducerRecord[String, String]("KMEANS", pred.toString, v.toString)
             producer.send(message)
 
+            producer.close()
             pred
+
+
         } )
 
+        // TODO: Switch to using mapPartitions instead of creating a producer for each record
         val rfPred = vectors.map( v =>  {
             val producer = new KafkaProducer[String, String](props)
             println (randomForestModel.numTrees)
@@ -74,6 +79,7 @@ object ReadmissionPredictor {
             val topic = "RF"
             val message = new ProducerRecord[String, String](topic, pred.toString, v.toString)
             producer.send(message)
+            producer.close
             pred
         } )
 
